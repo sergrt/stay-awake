@@ -24,12 +24,9 @@ Persistent
 
 ; GLOBALS ===================================================================================================================================================================
 
-app := Map("name", "Stay Awake Light", "version", "0.5", "release", "2023-06-30", "author", "sergrt", "licence", "MIT")
+app := Map("name", "Stay Awake Light", "version", "0.5.1", "release", "2023-06-30", "author", "sergrt", "licence", "MIT")
 
 ; TRAY ======================================================================================================================================================================
-
-if (VerCompare(A_OSVersion, "10.0.22000") >= 0)
-	TraySetIcon("shell32.dll", 26)
 
 TrayMain := A_TrayMenu
 TrayMain.Delete()
@@ -39,10 +36,11 @@ TrayMode.Add("Enabled", EnableStayAwake, "+Radio")
 TrayMode.Add("Disabled", DisableStayAwake, "+Radio")
 
 TrayTemp := Menu()
-TrayTemp.Add("1 hour", SetTemporarily, "+Radio")
-TrayTemp.Add("4 hours", SetTemporarily, "+Radio")
-TrayTemp.Add("8 hours", SetTemporarily, "+Radio")
-TrayTemp.Add("10 hours", SetTemporarily, "+Radio")
+TrayTemp.Add("1 hour", SetTemporarily1Hour, "+Radio")
+TrayTemp.Add("2 hours", SetTemporarily2Hours, "+Radio")
+TrayTemp.Add("4 hours", SetTemporarily4Hours, "+Radio")
+TrayTemp.Add("8 hours", SetTemporarily8Hours, "+Radio")
+TrayTemp.Add("10 hours", SetTemporarily10Hours, "+Radio")
 TrayMode.Add("Enabled for period", TrayTemp, "+Radio")
 
 TrayMain.Add("Mode", TrayMode)
@@ -64,6 +62,7 @@ UncheckAll()
 	TrayMode.Uncheck("Disabled")
 	TrayMode.Uncheck("Enabled for period")
 	TrayTemp.Uncheck("1 hour")
+	TrayTemp.Uncheck("2 hours")
 	TrayTemp.Uncheck("4 hours")
 	TrayTemp.Uncheck("8 hours")
 	TrayTemp.Uncheck("10 hours")
@@ -73,6 +72,7 @@ EnableStayAwake(ItemName, ItemPos, *)
 {
 	UncheckAll()
 	TrayMode.Check(ItemName)
+	StayAwake.Period := 0
 	Restart()
 }
 
@@ -83,23 +83,38 @@ DisableStayAwake(ItemName, ItemPos, *)
 	StayAwake.Stop()
 }
 
-SetTemporarily(ItemName, ItemPos, *)
+SetTemporarilyImpl(ItemName, hours)
 {
 	UncheckAll()
 	TrayMode.Check("Enabled for period")
 	TrayTemp.Check(ItemName)
-	
-	hours := 1
-	if (ItemName = "4 hours")
-		ModePos := 4
-	else if (ItemName = "8 hours")
-		ModePos := 8
-	else if (ItemName = "10 hours")
-		ModePos := 10
-	
 	StayAwake.Period := 1000 * (hours * 3600)
-	
 	Restart()
+}
+
+SetTemporarily1Hour(ItemName, ItemPos, *)
+{
+	SetTemporarilyImpl(ItemName, 1)
+}
+
+SetTemporarily2Hours(ItemName, ItemPos, *)
+{
+	SetTemporarilyImpl(ItemName, 2)
+}
+
+SetTemporarily4Hours(ItemName, ItemPos, *)
+{
+	SetTemporarilyImpl(ItemName, 4)
+}
+
+SetTemporarily8Hours(ItemName, ItemPos, *)
+{
+	SetTemporarilyImpl(ItemName, 8)
+}
+
+SetTemporarily10Hours(ItemName, ItemPos, *)
+{
+	SetTemporarilyImpl(ItemName, 10)
 }
 
 SetDisplayOn(ItemName, ItemPos, *)
